@@ -12,8 +12,6 @@ module Pdf
   -- block part
   , textBlock     -- :: [Command] -> Block
   , graphicsBlock -- :: [Command] -> Block
-  , over          -- :: Block -> Block -> Block
-  , under         -- :: Block -> Block -> Block
   , rightAlign    -- :: Block -> Block
   
   -- commands part
@@ -148,11 +146,6 @@ graphicsBlock cs = Block ((filter (\b ->
     otherwise -> False
   ) cs) ++ [Graph Stroke])
 
-over :: Block -> Block -> Block
-over (Block b) (Block b') = Block (b++(Text (Quote ""):b'))
-
-under :: Block -> Block -> Block
-under b b' = over b' b
 
 rightAlign :: Block -> Block
 rightAlign (Block [])     = Block []
@@ -243,7 +236,7 @@ arrangeObjects os = (content ++ xref, objLen, 2 + length content)
 translatePages :: (Int, Int, Int, Int) -> Int -> [Page] -> [Object]
 translatePages s@(x,y,w,h) n ps = concat (map makePageObjs pageCommands)
  where 
-  pageCommands = zip [n, (n+3)..] (map (translatePage s) ps)
+  pageCommands = zip [n, (n+3)..] (map translatePage ps)
 
   makePageObjs :: (Int, [Command]) -> [Object]
   makePageObjs (n,cs) = 
@@ -259,19 +252,13 @@ translatePages s@(x,y,w,h) n ps = concat (map makePageObjs pageCommands)
  
 
 -- combines all areas in a page
-translatePage :: (Int, Int, Int, Int) -> Page -> [Command]
-translatePage s ps = Comm QSave : (concat (map (translateArea s) ps))
+translatePage :: Page -> [Command]
+translatePage ps = Comm QSave : (concat (map translateArea ps))
 
 
 -- creates a list of commands from an area
-translateArea :: (Int, Int, Int, Int) -> Area -> [Command]
-translateArea (sx,sy,sw,sh) = 
-  (\(x,y,Block b) -> 
-      (
-		Comm QLoadSave :
-		Comm (Cm 1 0 0 1 (x-(fromInt sx)) ((fromInt sh)-(y-(fromInt sy)))) :
-		b
-	  ))
+translateArea :: Area -> [Command]
+translateArea (x,y,Block b) = Comm QLoadSave:Comm (Cm 1 0 0 1 x y):b
 
 
 -- translates commands to text
