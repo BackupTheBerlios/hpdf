@@ -15,20 +15,15 @@ module Pdf
   , rightAlign    -- :: Block -> Block
   
   -- commands part
-  , setFont   -- :: String -> Int -> Command 
+  , setFont   -- :: Font -> Int -> Command 
   , write     -- :: String -> Command
   , writeLn   -- :: String -> Command
   , line      -- :: Int -> Int -> Int -> Int -> Command
   , lineTo    -- :: Int -> Int -> Command
 
   -- data constructors
-  , A3        -- :: PageSize
-  , A4        -- :: PageSize
-  , Letter    -- :: PageSize
-  , Helvetica -- :: Font
-  , Courier   -- :: Font
-  , Times     -- :: Font
-  , Arial     -- :: Font
+  , PageSize ( A3, A4, Letter )
+  , Font ( Helvetica, Courier, Times, Arial )
   ) where
 
 ---------------------------------------------------------------------
@@ -116,7 +111,7 @@ pageSize :: PageSize -> (Int, Int, Int, Int)
 pageSize A3     = (0, 0, 842, 1190)
 pageSize A4     = (0, 0, 595, 842)
 pageSize Letter = (0, 0, 612, 792)
-pageSize _  = error "Unknown pagesize"
+pageSize _      = error "Unknown pagesize"
 
 -- area --
 position :: Block -> Double -> Double -> Area
